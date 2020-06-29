@@ -10,6 +10,33 @@ import (
 )
 
 
+type Response struct {
+  Host string
+  Port int
+  Protocol string
+  IsPublic bool
+  Status string
+  StartTime int
+  TestTime int
+  EngineVersion string
+  CriteriaVersion string
+  Endpoints []Response2
+}
+//change default. To nil! 
+// validations! 
+type Response2 struct {
+  IpAddress string
+  ServerName string
+  StatusMessage string
+  Grade string
+  GradeTrustIgnored string
+  HasWarnings bool
+  IsExceptional bool
+  Progress int
+  Duration int
+  Delegation int
+}
+
 func RequestApi(url string) response {
 	req := fasthttp.AcquireRequest()
   defer fasthttp.ReleaseRequest(req)
@@ -23,12 +50,12 @@ func RequestApi(url string) response {
   err := fasthttp.Do(req, resp)
   if err != nil {
     fmt.Printf("Request failed: %s\n", err)
-    var r response
+    var r Response
     return r
   }
   if resp.StatusCode() != fasthttp.StatusOK {
     fmt.Printf("Bad satus code %d\n", resp.StatusCode())
-    var r response
+    var r Response
     return r
   }
 
@@ -39,13 +66,13 @@ func RequestApi(url string) response {
 
   dec := json.NewDecoder(bytes.NewReader(body))
 
-  var r response
+  var r Response
 
   rerr := dec.Decode(&r)
 
   if rerr != nil {
     fmt.Printf("Request failed inside: %s\n", rerr)
-    var r response
+    var r Response
     return r
   }
 
