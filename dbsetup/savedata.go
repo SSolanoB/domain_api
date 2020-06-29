@@ -10,9 +10,10 @@ import (
   "context"
   "github.com/cockroachdb/cockroach-go/crdb"
   "./whoislocal"
+  "./ssllabsapi"
 )
 
-func ExecuteTransaction(resp Response) error {
+func ExecuteTransaction(resp ssllabsapi.Response) error {
   fmt.Println(resp)
   //fmt.Printf("Body is: %T\n", resp)
 
@@ -35,7 +36,7 @@ func ExecuteTransaction(resp Response) error {
   return err
 }
 
-func SaveData(tx *sql.Tx, resp Response) error {
+func SaveData(tx *sql.Tx, resp ssllabsapi.Response) error {
     
   url := resp.Host
 
@@ -86,7 +87,7 @@ func SaveData(tx *sql.Tx, resp Response) error {
           var ssl_grade *string
           country, owner, err := whoislocal.AskforIp(server.IpAddress)
           if err == nil {
-            if err := tx.QueryRow("INSERT INTO servers (inquiry_id, address, ssl_grade, created_at, updated_at) VALUES ($1, $2, $3, now(), now()) RETURNING ssl_grade", inquiry_id, server.IpAddress, server.Grade).Scan(&ssl_grade); err != nil {
+            if err := tx.QueryRow("INSERT INTO servers (inquiry_id, address, ssl_grade, country, owner, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, now(), now()) RETURNING ssl_grade", inquiry_id, server.IpAddress, server.Grade, country, owner).Scan(&ssl_grade); err != nil {
               return err
             }
           } else {
