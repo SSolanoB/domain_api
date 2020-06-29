@@ -15,11 +15,11 @@ func AskforIp(query string) (country, org_name string, err error){
 	if err == nil {
 		fmt.Println(request)
 		//result, err := whoisparser.Parse(request)
-		re := regexp.MustCompile(`(?:Country:) (.*)`)
+		re := regexp.MustCompile(`(?:[Cc]ountry:) (.*)`)
 		country := re.FindAllStringSubmatch(string(request), -1)[0][1]
 		fmt.Printf("%q\n", strings.TrimSpace(country))
 
-		re_2 := regexp.MustCompile(`(?:OrgName:) (.*)`)
+		re_2 := regexp.MustCompile(`(?:[Oo]rg-?[Nn]ame:) (.*)`)
 		org_name := re_2.FindAllStringSubmatch(string(request), -1)[0][1]
 		fmt.Printf("%q\n", strings.TrimSpace(org_name))
 		return country, org_name, err
