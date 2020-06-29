@@ -10,9 +10,8 @@ import (
 
   "encoding/json"
 
-  "context"
-  "./whoislocal"
   "./dbsetup"
+  "./ssllabsapi"
 )
 
 func Index(ctx *fasthttp.RequestCtx) {
@@ -29,6 +28,9 @@ func QueryArgs(ctx *fasthttp.RequestCtx) {
   if name != nil {
     url := "https://api.ssllabs.com/api/v3/analyze?host=" + string(name)
     fmt.Fprintf(ctx, "Url = %s\n", string(url))
+    respon := ssllabsapi.RequestApi(string(url))
+    // Should wait until api respond with info of servers.
+    dbsetup.ExecuteTransaction(respon)
   } else {
     fmt.Fprintf(ctx, "Please specify a domain!\n")
   }
