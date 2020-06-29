@@ -2,8 +2,8 @@ package ssllabsapi
 
 import (
   "fmt"
+  "bytes"
 
-  "github.com/buaazp/fasthttprouter"
   "github.com/valyala/fasthttp"
 
   "encoding/json"
@@ -37,7 +37,7 @@ type Response2 struct {
   Delegation int
 }
 
-func RequestApi(url string) response {
+func RequestApi(url string) Response {
 	req := fasthttp.AcquireRequest()
   defer fasthttp.ReleaseRequest(req)
   req.SetRequestURI(url)
