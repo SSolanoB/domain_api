@@ -41,7 +41,10 @@ func main() {
   router.GET("/", Index)
   router.GET("/domains", QueryArgs)
 
+
   fmt.Println("server starting on localhost:3000")
+
+  dbsetup.SetupDb()
 
   log.Fatal(fasthttp.ListenAndServe(":3000", router.Handler))
 }
