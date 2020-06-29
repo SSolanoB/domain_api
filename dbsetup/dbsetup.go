@@ -1,7 +1,6 @@
 package dbsetup
 
 import (
-	"fmt"
 	"log"
 
 	"database/sql"
