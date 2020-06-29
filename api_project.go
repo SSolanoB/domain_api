@@ -3,15 +3,14 @@ package main
 import (
 	"fmt"
 	"log"
-  "bytes"
 
 	"github.com/buaazp/fasthttprouter"
 	"github.com/valyala/fasthttp"
 
-  "encoding/json"
+  //"encoding/json"
 
   "./dbsetup"
-  "./ssllabsapi"
+  "./dbsetup/ssllabsapi"
 )
 
 func Index(ctx *fasthttp.RequestCtx) {
