@@ -51,7 +51,7 @@ func SaveData(tx *sql.Tx, resp ssllabsapi.Response) error {
       }
     }
 
-    titles, images, links := htmlreader.RequestHeaderInfo(url)
+    titles, images, links, is_down := htmlreader.RequestHeaderInfo(url)
     fmt.Println("Inside SaveData \n")
     fmt.Println(titles)
     fmt.Println(images)
@@ -76,7 +76,7 @@ func SaveData(tx *sql.Tx, resp ssllabsapi.Response) error {
       return fmt.Errorf("Not found? Found?")
     } else {
       fmt.Printf("Domain id is: %p\n", domain_id)
-      if err := tx.QueryRow("INSERT INTO inquiries (domain_id, logo, title, created_at, updated_at) VALUES ($1, $2, $3, now(), now()) RETURNING id", domain_id, logo, title).Scan(&inquiry_id); err != nil {
+      if err := tx.QueryRow("INSERT INTO inquiries (domain_id, logo, title, is_down, created_at, updated_at) VALUES ($1, $2, $3, $4, now(), now()) RETURNING id", domain_id, logo, title, is_down).Scan(&inquiry_id); err != nil {
         return err
       }
       fmt.Printf("Inquiry id is: %p\n", inquiry_id)
