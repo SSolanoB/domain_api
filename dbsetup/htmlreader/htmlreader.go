@@ -8,7 +8,7 @@ import (
 	"regexp"
 )
 
-func RequestHeaderInfo(url string) (titles, images, links []string) {
+func RequestHeaderInfo(url string) (titles, images, links []string, isdown bool) {
 
  	client := fasthttp.Client{}
   var dst []byte
@@ -17,6 +17,8 @@ func RequestHeaderInfo(url string) (titles, images, links []string) {
   if err != nil {
     fmt.Printf("Request failed: %s\n", err)
     fmt.Println(status)
+    isdown = true
+    fmt.Println(isdown)
     return
   }
 
