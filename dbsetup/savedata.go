@@ -91,7 +91,9 @@ func SaveData(tx *sql.Tx, resp ssllabsapi.Response) error {
               return err
             }
           } else {
-            return err
+            if err := tx.QueryRow("INSERT INTO servers (inquiry_id, address, ssl_grade, created_at, updated_at) VALUES ($1, $2, $3, now(), now()) RETURNING ssl_grade", inquiry_id, server.IpAddress, server.Grade).Scan(&ssl_grade); err != nil {
+              return err
+            }
           }
           
           fmt.Println(i)
