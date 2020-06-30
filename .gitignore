@@ -3,3 +3,9 @@ my-safe-directory
 node1
 node2
 node3
+basic-sample.go
+router-example.go
+routerv2.go
+setup-database.go
+txn-sample.go
+whois-try.go
