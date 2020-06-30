@@ -11,6 +11,7 @@ import (
   "github.com/cockroachdb/cockroach-go/crdb"
   "./whoislocal"
   "./ssllabsapi"
+  "./htmlreader"
 )
 
 func ExecuteTransaction(resp ssllabsapi.Response) error {
@@ -50,11 +51,32 @@ func SaveData(tx *sql.Tx, resp ssllabsapi.Response) error {
       }
     }
 
+    titles, images, links := htmlreader.RequestHeaderInfo(url)
+    fmt.Println("Inside SaveData \n")
+    fmt.Println(titles)
+    fmt.Println(images)
+    fmt.Println(links)
+
+    var title string
+    var logo string
+
+    if titles != nil {
+      title = titles[0]
+    }
+
+    if images != nil && links != nil {
+      logo = links[0]
+    } else if links != nil {
+      logo = links[0]
+    } else if images != nil {
+      logo = images[0]
+    }
+
     if domain_id == nil {
       return fmt.Errorf("Not found? Found?")
     } else {
       fmt.Printf("Domain id is: %p\n", domain_id)
-      if err := tx.QueryRow("INSERT INTO inquiries (domain_id, created_at, updated_at) VALUES ($1, now(), now()) RETURNING id", domain_id).Scan(&inquiry_id); err != nil {
+      if err := tx.QueryRow("INSERT INTO inquiries (domain_id, logo, title, created_at, updated_at) VALUES ($1, $2, $3, now(), now()) RETURNING id", domain_id, logo, title).Scan(&inquiry_id); err != nil {
         return err
       }
       fmt.Printf("Inquiry id is: %p\n", inquiry_id)
