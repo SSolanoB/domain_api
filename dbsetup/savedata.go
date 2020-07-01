@@ -73,17 +73,24 @@ func SaveData(tx *sql.Tx, resp ssllabsapi.Response) error {
       logo = images[0]
     }
 
+    previous_ssl_grade, err_check := checkPreviousServers(tx, url)
+
+    if err_check != nil {
+      return err_check
+    }
+
+    fmt.Println(previous_ssl_grade)
+
     if domain_id == nil {
       return fmt.Errorf("Not found? Found?")
     } else {
       fmt.Printf("Domain id is: %p\n", domain_id)
-      if err := tx.QueryRow("INSERT INTO inquiries (domain_id, logo, title, is_down, created_at, updated_at) VALUES ($1, $2, $3, $4, now(), now()) RETURNING id", domain_id, logo, title, is_down).Scan(&inquiry_id); err != nil {
+      if err := tx.QueryRow("INSERT INTO inquiries (domain_id, previous_ssl_grade, logo, title, is_down, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, now(), now()) RETURNING id", domain_id, previous_ssl_grade, logo, title, is_down).Scan(&inquiry_id); err != nil {
         return err
       }
       fmt.Printf("Inquiry id is: %p\n", inquiry_id)
 
-      // I have to check the logo, title, and if the web is down.
-      // I have to check if servers have changes, the min ssl grade, and the previous ssl grade if available.
+      // I have to check if servers have changes, and the previous ssl grade if available.
 
       servers := resp.Endpoints
       
