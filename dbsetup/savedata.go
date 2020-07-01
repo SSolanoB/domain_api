@@ -90,7 +90,7 @@ func SaveData(tx *sql.Tx, resp ssllabsapi.Response) error {
       }
       fmt.Printf("Inquiry id is: %p\n", inquiry_id)
 
-      // I have to check if servers have changes, and the previous ssl grade if available.
+      // I have to check if servers have changes
 
       servers := resp.Endpoints
       
