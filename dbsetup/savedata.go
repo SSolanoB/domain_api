@@ -3,9 +3,10 @@ package dbsetup
 import (
 	"fmt"
 	"log"
+  "strings"
 
 	"database/sql"
-  _ "github.com/lib/pq"
+  "github.com/lib/pq"
 
   "context"
   "github.com/cockroachdb/cockroach-go/crdb"
