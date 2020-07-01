@@ -74,12 +74,22 @@ func SaveData(tx *sql.Tx, resp ssllabsapi.Response) error {
       logo = images[0]
     }
 
-    previous_ssl_grade, err_check := checkPreviousServers(tx, url)
+    last_inquiry_id, err_lastin := checkLastInquiry(tx, url)
 
-    if err_check != nil {
-      return err_check
+    if err_lastin != nil {
+      return err_lastin
     }
 
+    var previous_ssl_grade *string
+    var err_check error
+    if last_inquiry_id != nil {
+      previous_ssl_grade, err_check = checkPreviousGrade(tx, last_inquiry_id)
+      if err_check != nil {
+        return err_check
+      }
+    }
+
+    fmt.Println(last_inquiry_id)
     fmt.Println(previous_ssl_grade)
 
     if domain_id == nil {
@@ -163,8 +173,7 @@ func SaveData(tx *sql.Tx, resp ssllabsapi.Response) error {
   return nil
 }
 
-func checkPreviousServers(tx *sql.Tx, url string) (previous_ssl_grade *string, error error) {
-  
+func checkLastInquiry(tx *sql.Tx, url string) (last_inquiry_id *int, error error) {
   trimmed_url := strings.Trim(url, "http://")
   trimmed_url = strings.Trim(trimmed_url, "https://")
 
@@ -188,7 +197,6 @@ func checkPreviousServers(tx *sql.Tx, url string) (previous_ssl_grade *string, e
   fmt.Println("CHECK PREVIOUS DOMAINS 2")
   fmt.Println(dom_ids)
 
-  var last_inquiry_id *int
   error = tx.QueryRow("SELECT inquiries.id FROM inquiries INNER JOIN domains ON domains.id = inquiries.domain_id AND domains.id = ANY ($1) WHERE inquiries.created_at < (now() - INTERVAL '1 HOUR') ORDER BY inquiries.created_at DESC LIMIT 1", pq.Array(dom_ids)).Scan(&last_inquiry_id)
 
   switch {
@@ -197,12 +205,17 @@ func checkPreviousServers(tx *sql.Tx, url string) (previous_ssl_grade *string, e
     return nil, nil
   case error != nil:
     log.Fatalf("query error: %v\n", error)
-    return 
+    return
   default:
     log.Printf("Nothing in here")
   }
   
   fmt.Printf("Inquiry id is: %+v\n", *last_inquiry_id)
+
+  return last_inquiry_id, nil
+}
+
+func checkPreviousGrade(tx *sql.Tx, last_inquiry_id *int) (previous_ssl_grade *string, error error) {
 
   error = tx.QueryRow("SELECT ssl_grade FROM inquiries WHERE id = $1", last_inquiry_id).Scan(&previous_ssl_grade)
 
