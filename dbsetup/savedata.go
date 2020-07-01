@@ -164,6 +164,21 @@ func SaveData(tx *sql.Tx, resp ssllabsapi.Response) error {
         if _, err := tx.Exec("UPDATE inquiries SET ssl_grade = $1 WHERE id = $2", string_min_grade, inquiry_id); err != nil {
           return err
         }
+
+        if last_inquiry_id != nil {
+          servers_changed, err_serv := checkServersChanged(tx, last_inquiry_id, inquiry_id)
+          
+          if err_serv != nil {
+            return err_serv
+          }
+
+          if *servers_changed == true {
+            fmt.Println("ES TRUE")
+          }
+          /*if _, err := tx.Exec("UPDATE inquiries SET servers_changed = $1 WHERE id = $2", servers_changed, inquiry_id); err != nil {
+            return err
+          }*/
+        }
       }
     }
   } else {
