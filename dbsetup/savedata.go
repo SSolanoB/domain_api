@@ -250,6 +250,7 @@ func checkPreviousGrade(tx *sql.Tx, last_inquiry_id *int) (previous_ssl_grade *s
 
 func checkServersChanged(tx *sql.Tx, last_inquiry_id *int, current_inquiry_id *int) (servers_changed *bool, error error) {
   p_true := true
+  p_false := false
 
   rows, error := tx.Query("SELECT inquiry_id, address, ssl_grade, country, owner FROM servers WHERE inquiry_id = $1 OR inquiry_id = $2 ORDER BY address", last_inquiry_id, current_inquiry_id)
   defer rows.Close()
@@ -288,83 +289,22 @@ func checkServersChanged(tx *sql.Tx, last_inquiry_id *int, current_inquiry_id *i
     }
   }
 
-  fmt.Println("CHECK PREVIOUS SERVERS")
-  fmt.Println(b_addresses)
-  fmt.Println(b_ssl_grades)
-  fmt.Println(b_countries)
-  fmt.Println(b_owners)
-
-  fmt.Println("CHECK CURRENT SERVERS")
-  fmt.Println(c_addresses)
-  fmt.Println(c_ssl_grades)
-  fmt.Println(c_countries)
-  fmt.Println(c_owners)
-
-  /*before_rows, error_bef := tx.Query("SELECT address, ssl_grade, country, owner FROM servers WHERE inquiry_id = $1 ORDER BY address", last_inquiry_id)
-  defer before_rows.Close()
-  current_rows, error_cur := tx.Query("SELECT address, ssl_grade, country, owner FROM servers WHERE inquiry_id = $1 ORDER BY address", current_inquiry_id)
-  defer current_rows.Close()*/
-
-  /*switch {
-  case error_bef == sql.ErrNoRows && error_cur == sql.ErrNoRows:
-    log.Println("no servers for any inquiry\n")
-    return nil, nil
-  case error_bef == sql.ErrNoRows && error_cur == nil:
-    log.Println("no servers in last inquiry, but in new one is ok\n")
-    return &p_true, nil
-  case error_cur == sql.ErrNoRows && error_bef == nil:
-    log.Println("no servers in current inquiry, but in last one is ok\n")
-    return &p_true, nil
-  case error_bef != nil || error_cur != nil:
-    if error_bef != nil {
-      log.Fatalf("query error: %v\n", error_bef)
-    }
-    if error_cur != nil {
-      log.Fatalf("query error: %v\n", error_cur)
-    }
-    return 
-  default:
-    log.Printf("Nothing in here")
-  }*/
-
-  /*var b_addresses, b_ssl_grades, b_countries, b_owners []string
-
-  for before_rows.Next() {
-    var address, ssl_grade, country, owner string
-    if err := before_rows.Scan(&address, &ssl_grade, &country, &owner); err != nil {
-      return nil, err
-    }
-    b_addresses = append(b_addresses, address)
-    b_ssl_grades = append(b_ssl_grades, ssl_grade)
-    b_countries = append(b_countries, country)
-    b_owners = append(b_owners, owner)
+  if Identical(b_addresses, c_addresses) && Identical(b_ssl_grades, c_ssl_grades) && Identical(b_countries, c_countries) && Identical(b_owners, c_owners) {
+    return &p_false, nil
   }
-
-  fmt.Println("CHECK PREVIOUS SERVERS")
-  fmt.Println(b_addresses)
-  fmt.Println(b_ssl_grades)
-  fmt.Println(b_countries)
-  fmt.Println(b_owners)
-
-  var c_addresses, c_ssl_grades, c_countries, c_owners []string
-
-  for current_rows.Next() {
-    var address, ssl_grade, country, owner string
-    if err := current_rows.Scan(&address, &ssl_grade, &country, &owner); err != nil {
-      return nil, err
-    }
-    c_addresses = append(c_addresses, address)
-    c_ssl_grades = append(c_ssl_grades, ssl_grade)
-    c_countries = append(c_countries, country)
-    c_owners = append(c_owners, owner)
-  }
-
-  fmt.Println("CHECK CURRENT SERVERS")
-  fmt.Println(c_addresses)
-  fmt.Println(c_ssl_grades)
-  fmt.Println(c_countries)
-  fmt.Println(c_owners)*/
 
   return &p_true, nil
+}
+
+func Identical(str_1, str_2 []string) bool {
+  if len(str_1) != len(str_2) {
+    return false
+  }
+  for i, str := range str_1 {
+    if str != str_2[i] {
+      return false
+    }
+  }
+  return true
 }
 
