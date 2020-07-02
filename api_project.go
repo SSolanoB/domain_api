@@ -8,11 +8,18 @@ import (
 	"github.com/buaazp/fasthttprouter"
 	"github.com/valyala/fasthttp"
 
-  //"encoding/json"
+  "encoding/json"
 
   "./dbsetup"
   "./dbsetup/ssllabsapi"
 )
+
+type JResponseAPI struct {
+  Name string `json:"name"`
+  Completed bool `josn:"completed"`
+}
+
+type JResponseAPIs []JResponseAPI
 
 func Index(ctx *fasthttp.RequestCtx) {
   fmt.Fprintf(ctx, "Welcome!\n")
@@ -35,8 +42,19 @@ func QueryArgs(ctx *fasthttp.RequestCtx) {
     respon := ssllabsapi.RequestApi(string(url))
     // Should wait until api respond with info of servers.
     dbsetup.ExecuteTransaction(respon)
+
+    json_response := JResponseAPIs{
+      JResponseAPI{Name: "HolaSoyDani"},
+      JResponseAPI{Name: "HolaSoyDaniS"},
+    }
+
+    enc := json.NewEncoder(ctx)
+    enc.Encode(&json_response)
+    ctx.SetStatusCode(fasthttp.StatusOK)
+    ctx.SetContentType("application/json")
   } else {
     fmt.Fprintf(ctx, "Please specify a domain!\n")
+    ctx.SetStatusCode(fasthttp.StatusBadRequest)
   }
 }
 
