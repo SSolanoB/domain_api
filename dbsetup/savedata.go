@@ -152,10 +152,9 @@ func SaveData(tx *sql.Tx, resp ssllabsapi.Response) error {
 
           fmt.Println(temp_grade)
         }
-        fmt.Println(*min_grade)
         var string_min_grade string
         for grade, value := range class {
-          if *min_grade == value {
+          if min_grade != nil && *min_grade == value {
             string_min_grade = grade
             fmt.Println(string_min_grade)
             fmt.Println(grade)
