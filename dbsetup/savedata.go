@@ -47,36 +47,50 @@ func ExecuteTransaction(resp ssllabsapi.Response) (r Answer, err error) {
   }
   defer db.Close()
 
+  var tmp_inquiry_id *int
   err = crdb.ExecuteTx(context.Background(), db, nil, func(tx *sql.Tx) error {
-      return SaveData(tx, resp)
+      inquiry_id, err := SaveData(tx, resp)  
+      tmp_inquiry_id = inquiry_id
+      return err
   })
+  fmt.Println(tmp_inquiry_id)
   if err == nil {
-      fmt.Println("Success")
+    fmt.Println("Success")
+
   } else {
-      log.Fatal("error: ", err)
+    log.Fatal("error: ", err)
   }
-  return err
+
+  r, err = constructJson(*tmp_inquiry_id)
+  if err == nil {
+    fmt.Println("double success")
+    fmt.Println(r)
+  } else {
+    log.Fatal("error: ", err)
+  }
+
+  return r, err
 }
 
-func SaveData(tx *sql.Tx, resp ssllabsapi.Response) error {
+func SaveData(tx *sql.Tx, resp ssllabsapi.Response) (inquiry_id *int, error error) {
     
   url := resp.Host
 
   if url != "" {
     var domain_id *int
-    var inquiry_id *int
+    //var inquiry_id *int
 
     if err := tx.QueryRow("SELECT id FROM domains WHERE url = $1", url).Scan(&domain_id); err != nil {
       if err_2 := tx.QueryRow("INSERT INTO domains (url, created_at, updated_at) VALUES ($1, now(), now()) RETURNING id", url).Scan(&domain_id); err_2 != nil {
-        return err_2
+        return nil, err_2
       }
     }
 
     titles, images, links, is_down := htmlreader.RequestHeaderInfo(url)
-    fmt.Println("Inside SaveData \n")
-    fmt.Println(titles)
-    fmt.Println(images)
-    fmt.Println(links)
+    //fmt.Println("Inside SaveData \n")
+    //fmt.Println(titles)
+    //fmt.Println(images)
+    //fmt.Println(links)
 
     var title string
     var logo string
@@ -96,29 +110,31 @@ func SaveData(tx *sql.Tx, resp ssllabsapi.Response) error {
     last_inquiry_id, err_lastin := checkLastInquiry(tx, url)
 
     if err_lastin != nil {
-      return err_lastin
+      return nil, err_lastin
     }
 
-    var previous_ssl_grade *string
-    var err_check error
+    var tmp_previous_ssl_grade *string
+    //var err_check error
     if last_inquiry_id != nil {
-      previous_ssl_grade, err_check = checkPreviousGrade(tx, last_inquiry_id)
+      previous_ssl_grade, err_check := checkPreviousGrade(tx, last_inquiry_id)
       if err_check != nil {
-        return err_check
+        return nil, err_check
+      } else {
+        fmt.Println(previous_ssl_grade)
+        tmp_previous_ssl_grade = previous_ssl_grade
       }
     }
 
-    fmt.Println(last_inquiry_id)
-    fmt.Println(previous_ssl_grade)
+    //fmt.Println(last_inquiry_id)
 
     if domain_id == nil {
-      return fmt.Errorf("Not found? Found?")
+      return nil, fmt.Errorf("Not found? Found?")
     } else {
-      fmt.Printf("Domain id is: %p\n", domain_id)
-      if err := tx.QueryRow("INSERT INTO inquiries (domain_id, previous_ssl_grade, logo, title, is_down, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, now(), now()) RETURNING id", domain_id, previous_ssl_grade, logo, title, is_down).Scan(&inquiry_id); err != nil {
-        return err
+      //fmt.Printf("Domain id is: %p\n", domain_id)
+      if err := tx.QueryRow("INSERT INTO inquiries (domain_id, previous_ssl_grade, logo, title, is_down, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, now(), now()) RETURNING id", domain_id, tmp_previous_ssl_grade, logo, title, is_down).Scan(&inquiry_id); err != nil {
+        return nil, err
       }
-      fmt.Printf("Inquiry id is: %p\n", inquiry_id)
+      //fmt.Printf("Inquiry id is: %p\n", inquiry_id)
 
       // I have to check if servers have changes
 
@@ -148,11 +164,11 @@ func SaveData(tx *sql.Tx, resp ssllabsapi.Response) error {
           country, owner, err := whoislocal.AskforIp(server.IpAddress)
           if err == nil {
             if err := tx.QueryRow("INSERT INTO servers (inquiry_id, address, ssl_grade, country, owner, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, now(), now()) RETURNING ssl_grade", inquiry_id, server.IpAddress, server.Grade, country, owner).Scan(&ssl_grade); err != nil {
-              return err
+              return nil, err
             }
           } else {
             if err := tx.QueryRow("INSERT INTO servers (inquiry_id, address, ssl_grade, created_at, updated_at) VALUES ($1, $2, $3, now(), now()) RETURNING ssl_grade", inquiry_id, server.IpAddress, server.Grade).Scan(&ssl_grade); err != nil {
-              return err
+              return nil, err
             }
           }
           
@@ -180,21 +196,21 @@ func SaveData(tx *sql.Tx, resp ssllabsapi.Response) error {
           }
         }
         if _, err := tx.Exec("UPDATE inquiries SET ssl_grade = $1 WHERE id = $2", string_min_grade, inquiry_id); err != nil {
-          return err
+          return nil, err
         }
 
         if last_inquiry_id != nil {
           servers_changed, err_serv := checkServersChanged(tx, last_inquiry_id, inquiry_id)
           
           if err_serv != nil {
-            return err_serv
+            return nil, err_serv
           }
 
           if *servers_changed == false {
             fmt.Println("ES FALSE, THEY DID NOT CHANGED")
           }
           if _, err := tx.Exec("UPDATE inquiries SET servers_changed = $1 WHERE id = $2", servers_changed, inquiry_id); err != nil {
-            return err
+            return nil, err
           }
         }
       }
@@ -203,7 +219,8 @@ func SaveData(tx *sql.Tx, resp ssllabsapi.Response) error {
     fmt.Printf("Nor url provided")
   }
 
-  return nil
+
+  return inquiry_id, nil
 }
 
 func checkLastInquiry(tx *sql.Tx, url string) (last_inquiry_id *int, error error) {
