@@ -1,7 +1,7 @@
 package whoislocal
 
 import (
-	"fmt"
+	//"fmt"
 	"github.com/likexian/whois-go"
 	
 	"regexp"
@@ -13,16 +13,16 @@ func AskforIp(query string) (country, org_name string, err error){
 	//query = "205.251.242.103" ipv4
 	request, err := whois.Whois(query)
 	if err == nil {
-		fmt.Println(request)
+		//fmt.Println(request)
 		//result, err := whoisparser.Parse(request)
 		re := regexp.MustCompile(`(?:[Cc]ountry:) (.*)`)
 		country := re.FindAllStringSubmatch(string(request), -1)[0][1]
-		fmt.Printf("%q\n", strings.TrimSpace(country))
+		//fmt.Printf("%q\n", strings.TrimSpace(country))
 
 		re_2 := regexp.MustCompile(`(?:[Oo]rg-?[Nn]ame:) (.*)`)
 		org_name := re_2.FindAllStringSubmatch(string(request), -1)[0][1]
-		fmt.Printf("%q\n", strings.TrimSpace(org_name))
-		return country, org_name, err
+		//fmt.Printf("%q\n", strings.TrimSpace(org_name))
+		return strings.TrimSpace(country), strings.TrimSpace(org_name), err
 	} else {
 		var country string
 		var org_name string
