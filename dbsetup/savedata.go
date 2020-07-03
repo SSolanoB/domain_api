@@ -326,3 +326,94 @@ func Identical(str_1, str_2 []string) bool {
   return true
 }
 
+func constructJson(inquiry_id int) (r Answer, error error) {
+  db, err := sql.Open("postgres", 
+    "postgresql://ssolanob@localhost:26257/development?ssl=true&sslmode=require&sslrootcert=certs/ca.crt&sslkey=certs/client.ssolanob.key&sslcert=certs/client.ssolanob.crt")
+
+  if err != nil {
+    log.Fatal("error connecting to the database: ", err)
+  }
+  defer db.Close()
+
+  rows, error := db.Query("SELECT servers.address, servers.ssl_grade, servers.country, servers.owner, inquiries.servers_changed, inquiries.ssl_grade, inquiries.previous_ssl_grade, inquiries.logo, inquiries.title, inquiries.is_down FROM inquiries LEFT JOIN servers ON servers.inquiry_id = inquiries.id WHERE inquiries.id = $1", inquiry_id)
+  defer rows.Close()
+
+  switch {
+  case error == sql.ErrNoRows:
+    log.Println("no servers\n")
+    return r, nil
+  case error != nil:
+    log.Fatalf("query error: %v\n", error)
+    return r, nil
+  default:
+    log.Printf("Nothing in here")
+  }
+
+  notLast := rows.Next()
+
+  for notLast {
+    var address, ssl_grade, country, owner, servers_changed, min_ssl_grade, previous_ssl_grade, logo, title, is_down *string
+
+    if err := rows.Scan(&address, &ssl_grade, &country, &owner, &servers_changed, &min_ssl_grade, &previous_ssl_grade, &logo, &title, &is_down); err != nil {
+      return r, err
+    } else {
+      notLast = rows.Next()
+      if notLast == false {
+        if servers_changed != nil {
+          sc_bool, err := strconv.ParseBool(*servers_changed)
+          if err != nil {
+            fmt.Println("Error with bool")
+          } else {
+            r.Servers_changed = sc_bool
+          }  
+        }
+        
+        if min_ssl_grade != nil {
+          r.Ssl_grade = *min_ssl_grade  
+        }
+        
+        if previous_ssl_grade != nil {
+          r.Previous_ssl_grade = *previous_ssl_grade  
+        }
+        
+        if logo != nil {
+          r.Logo = *logo  
+        }
+        
+        if title != nil {
+          r.Title = *title
+        }
+        
+        if is_down != nil {
+          id_bool, err := strconv.ParseBool(*is_down)
+          if err != nil {
+            fmt.Println("Error with bool is down")
+          } else {
+            r.Is_down = id_bool
+          }
+        }
+      }
+      s := Server{}
+      if address != nil {
+        s.Address = *address
+      }
+
+      if ssl_grade != nil {
+        s.Ssl_grade = *ssl_grade
+      }
+
+      if country != nil {
+        s.Country = *country
+      }
+
+      if owner != nil {
+        s.Owner = *owner
+      }
+      r.Servers = append(r.Servers, s)
+    }
+  }
+
+  return r, nil
+
+}
+
