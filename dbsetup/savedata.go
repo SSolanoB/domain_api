@@ -16,7 +16,26 @@ import (
   "./htmlreader"
 )
 
-func ExecuteTransaction(resp ssllabsapi.Response) error {
+type Server struct {
+  Address string `json:"address"`
+  Ssl_grade string `json:"ssl_grade"`
+  Country string `json:"country"`
+  Owner string `json:"owner"`
+}
+
+type Servers []Server
+
+type Answer struct {
+  Servers Servers `json:"servers"`
+  Servers_changed bool `json:"servers_changed"`
+  Ssl_grade string `json:"ssl_grade"`
+  Previous_ssl_grade string `json:"previous_ssl_grade"`
+  Logo string `json:"logo"`
+  Title string `json:"title"`
+  Is_down bool `json:"title"`
+}
+
+func ExecuteTransaction(resp ssllabsapi.Response) (r Answer, err error) {
   fmt.Println(resp)
   //fmt.Printf("Body is: %T\n", resp)
 
