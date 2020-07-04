@@ -32,7 +32,7 @@ type Answer struct {
   Previous_ssl_grade string `json:"previous_ssl_grade"`
   Logo string `json:"logo"`
   Title string `json:"title"`
-  Is_down bool `json:"title"`
+  Is_down bool `json:"is_down"`
 }
 
 func ExecuteTransaction(resp ssllabsapi.Response) (r Answer, err error) {
