@@ -35,6 +35,19 @@ type Answer struct {
   Is_down bool `json:"is_down"`
 }
 
+
+type Item struct {
+  Url string `json:"domain"`
+}
+//type Item map[string]interface{}
+//type Item string
+
+type Items []Item
+
+type Answer2 struct {
+  Items Items `json:"items"`
+}
+
 func ExecuteTransaction(resp ssllabsapi.Response) (r Answer, err error) {
   fmt.Println(resp)
   //fmt.Printf("Body is: %T\n", resp)
@@ -432,5 +445,47 @@ func constructJson(inquiry_id int) (r Answer, error error) {
 
   return r, nil
 
+}
+
+func ReturnDomains() (response Answer2, err error) {
+  db, err := sql.Open("postgres", 
+    "postgresql://ssolanob@localhost:26257/development?ssl=true&sslmode=require&sslrootcert=certs/ca.crt&sslkey=certs/client.ssolanob.key&sslcert=certs/client.ssolanob.crt")
+
+  if err != nil {
+    log.Fatal("error connecting to the database: ", err)
+  }
+  defer db.Close()
+
+  rows, error := db.Query("SELECT url FROM domains")
+  defer rows.Close()
+
+  switch {
+  case error == sql.ErrNoRows:
+    log.Println("no servers\n")
+    return response, nil
+  case error != nil:
+    log.Fatalf("query error: %v\n", error)
+    return response, nil
+  default:
+    log.Printf("Nothing in here")
+  }
+
+  for rows.Next() {
+    var url *string
+    if err := rows.Scan(&url); err != nil {
+      return response, err
+    } else {
+      var d Item
+      if url != nil && *url != "" {
+        d.Url = *url
+        //d = Item{*url}
+        //d = Item{"": *url}
+       // d = Item("{" + *url + " info}")
+        response.Items = append(response.Items, d)
+      }
+    }
+  }
+
+  return response, nil
 }
 
