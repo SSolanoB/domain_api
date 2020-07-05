@@ -13,13 +13,40 @@ import (
   "./dbsetup"
   "./dbsetup/ssllabsapi"
 )
+/*
+type Str struct {
+  string
+}
 
+type JResponseAPIs struct {
+  []Str
+}
+*/
 func Index(ctx *fasthttp.RequestCtx) {
   fmt.Fprintf(ctx, "Welcome!\n")
 }
 
 func Hello(ctx *fasthttp.RequestCtx) {
   fmt.Fprintf(ctx, "hello, %s!\n", ctx.UserValue("name"))
+}
+
+func DomainIndex(ctx *fasthttp.RequestCtx) {
+  fmt.Fprintf(ctx, "I will give you the domains!\n")
+  response, err := dbsetup.ReturnDomains()
+  fmt.Println(response)
+  if err != nil {
+    fmt.Fprintf(ctx, "There was an error, try it again later!\n")
+    ctx.SetStatusCode(fasthttp.StatusBadRequest)
+  }
+  /*json_response := JResponseAPIs{
+      Str{"H"},
+  }*/
+  enc := json.NewEncoder(ctx)
+  err = enc.Encode(&response)
+  
+  ctx.SetStatusCode(fasthttp.StatusOK)
+  ctx.SetContentType("application/json")
+  
 }
 
 func QueryArgs(ctx *fasthttp.RequestCtx) {
@@ -56,7 +83,8 @@ func QueryArgs(ctx *fasthttp.RequestCtx) {
 func main() {
   router := fasthttprouter.New()
   router.GET("/", Index)
-  router.GET("/domains", QueryArgs)
+  router.GET("/domain", QueryArgs)
+  router.GET("/domains", DomainIndex)
 
 
   fmt.Println("server starting on localhost:3000")
