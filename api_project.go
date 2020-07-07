@@ -31,7 +31,7 @@ func Hello(ctx *fasthttp.RequestCtx) {
 }
 
 func DomainIndex(ctx *fasthttp.RequestCtx) {
-  fmt.Fprintf(ctx, "I will give you the domains!\n")
+  //fmt.Fprintf(ctx, "I will give you the domains!\n")
   response, err := dbsetup.ReturnDomains()
   fmt.Println(response)
   if err != nil {
@@ -46,6 +46,11 @@ func DomainIndex(ctx *fasthttp.RequestCtx) {
   
   ctx.SetStatusCode(fasthttp.StatusOK)
   ctx.SetContentType("application/json")
+  ctx.Response.Header.Set("Access-Control-Allow-Credentials", "true")
+  ctx.Response.Header.Set("Access-Control-Allow-Headers", "authorization")
+  ctx.Response.Header.Set("Access-Control-Allow-Methods", "GET")
+  ctx.Response.Header.Set("Access-Control-Allow-Origin", "*")
+  //ctx.Response.Header.SetBytesV("Access-Control-Allow-Origin", ctx.Request.Peek("Origin"))
   
 }
 
