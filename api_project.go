@@ -79,6 +79,10 @@ func QueryArgs(ctx *fasthttp.RequestCtx) {
     enc.Encode(&r)
     ctx.SetStatusCode(fasthttp.StatusOK)
     ctx.SetContentType("application/json")
+    ctx.Response.Header.Set("Access-Control-Allow-Credentials", "true")
+    ctx.Response.Header.Set("Access-Control-Allow-Headers", "authorization")
+    ctx.Response.Header.Set("Access-Control-Allow-Methods", "GET")
+    ctx.Response.Header.Set("Access-Control-Allow-Origin", "*")
   } else {
     fmt.Fprintf(ctx, "Please specify a domain!\n")
     ctx.SetStatusCode(fasthttp.StatusBadRequest)
