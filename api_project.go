@@ -56,14 +56,14 @@ func DomainIndex(ctx *fasthttp.RequestCtx) {
 
 func QueryArgs(ctx *fasthttp.RequestCtx) {
   name := ctx.QueryArgs().Peek("name")
-  fmt.Fprintf(ctx, "Pong! %s\n", string(name))
+  //fmt.Fprintf(ctx, "Pong! %s\n", string(name))
   if name != nil {
     str_name := string(name)
     if strings.HasPrefix(str_name, "http") != true {
       str_name = "http://" + str_name
     }
     url := "https://api.ssllabs.com/api/v3/analyze?host=" + str_name
-    fmt.Fprintf(ctx, "Url = %s\n", string(url))
+    //fmt.Fprintf(ctx, "Url = %s\n", string(url))
     respon := ssllabsapi.RequestApi(string(url))
     // Should wait until api respond with info of servers.
     r, err := dbsetup.ExecuteTransaction(respon)
