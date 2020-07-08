@@ -13,15 +13,7 @@ import (
   "./dbsetup"
   "./dbsetup/ssllabsapi"
 )
-/*
-type Str struct {
-  string
-}
 
-type JResponseAPIs struct {
-  []Str
-}
-*/
 func Index(ctx *fasthttp.RequestCtx) {
   fmt.Fprintf(ctx, "Welcome!\n")
 }
@@ -38,9 +30,6 @@ func DomainIndex(ctx *fasthttp.RequestCtx) {
     fmt.Fprintf(ctx, "There was an error, try it again later!\n")
     ctx.SetStatusCode(fasthttp.StatusBadRequest)
   }
-  /*json_response := JResponseAPIs{
-      Str{"H"},
-  }*/
   enc := json.NewEncoder(ctx)
   err = enc.Encode(&response)
   
@@ -50,8 +39,6 @@ func DomainIndex(ctx *fasthttp.RequestCtx) {
   ctx.Response.Header.Set("Access-Control-Allow-Headers", "authorization")
   ctx.Response.Header.Set("Access-Control-Allow-Methods", "GET")
   ctx.Response.Header.Set("Access-Control-Allow-Origin", "*")
-  //ctx.Response.Header.SetBytesV("Access-Control-Allow-Origin", ctx.Request.Peek("Origin"))
-  
 }
 
 func QueryArgs(ctx *fasthttp.RequestCtx) {
