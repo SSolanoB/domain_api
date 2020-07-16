@@ -27,13 +27,14 @@ func DomainIndex(ctx *fasthttp.RequestCtx) {
   response, err := dbsetup.ReturnDomains()
   fmt.Println(response)
   if err != nil {
-    fmt.Fprintf(ctx, "There was an error, try it again later!\n")
     ctx.SetStatusCode(fasthttp.StatusBadRequest)
+    ctx.SetBodyString("There was an error, try it again later!")
+  } else {
+    enc := json.NewEncoder(ctx)
+    err = enc.Encode(&response)
+    ctx.SetStatusCode(fasthttp.StatusOK)
   }
-  enc := json.NewEncoder(ctx)
-  err = enc.Encode(&response)
   
-  ctx.SetStatusCode(fasthttp.StatusOK)
   ctx.SetContentType("application/json")
   ctx.Response.Header.Set("Access-Control-Allow-Credentials", "true")
   ctx.Response.Header.Set("Access-Control-Allow-Headers", "authorization")
