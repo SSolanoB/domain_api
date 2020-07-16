@@ -59,13 +59,13 @@ func QueryArgs(ctx *fasthttp.RequestCtx) {
     fmt.Println(r.Title)
 
     if err != nil {
-      fmt.Fprintf(ctx, "There was an error!\n")
+      fmt.Fprintf(ctx, "There was an error!")
       ctx.SetStatusCode(fasthttp.StatusBadRequest)
+    } else {
+      enc := json.NewEncoder(ctx)
+      enc.Encode(&r)
+      ctx.SetStatusCode(fasthttp.StatusOK)
     }
-
-    enc := json.NewEncoder(ctx)
-    enc.Encode(&r)
-    ctx.SetStatusCode(fasthttp.StatusOK)
     ctx.SetContentType("application/json")
     ctx.Response.Header.Set("Access-Control-Allow-Credentials", "true")
     ctx.Response.Header.Set("Access-Control-Allow-Headers", "authorization")
